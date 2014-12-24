@@ -1,13 +1,12 @@
 FROM debian:wheezy
 
-MAINTAINER ZOL <hello@zol.fr>
+MAINTAINER yourself
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install php and nginx
 RUN apt-get update && apt-get install -y \
     curl \
-    git \
     php5-dev \
     php5-cli \
     php5-mysql \
@@ -15,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     php5-curl \
     php5-fpm \
     php-pear \
+    php5-xdebug \
     nginx
 
 # According to the Docker way, your container should run only one service.
@@ -24,7 +24,13 @@ RUN apt-get update && apt-get install -y \
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
 # Find the line, cgi.fix_pathinfo=1, and change the 1 to 0.
-RUN sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php5/fpm/php.ini
+RUN sed "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" -i /etc/php5/fpm/php.ini \
+ && sed 's/^error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT/error_reporting = E_ALL /' -i /etc/php5/fpm/php.ini \
+ && sed 's/^display_errors = Off/display_errors = On /' -i /etc/php5/fpm/php.ini \
+ && sed 's/^display_startup_errors = Off/display_startup_errors = On/' -i /etc/php5/fpm/php.ini \
+ && sed 's/^track_errors = Off/track_errors = On/' -i /etc/php5/fpm/php.ini \
+ && sed 's/^;date.timezone =/date.timezone =Asia\/Shanghai /' -i /etc/php5/fpm/php.ini 
+ 
 RUN sed -i "s/;listen.allowed_clients = 127.0.0.1/listen.allowed_clients = 0.0.0.0/" /etc/php5/fpm/pool.d/www.conf
 
 # Install composer
